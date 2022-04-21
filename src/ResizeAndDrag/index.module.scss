@@ -1,0 +1,14 @@
+.gridButton {
+  background-color: transparent;
+  border: 1px solid #f4a482;
+  cursor: pointer;
+  width: 48px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.gridButton:not(:last-child) {
+  margin-right: 8px;
+}
+
+

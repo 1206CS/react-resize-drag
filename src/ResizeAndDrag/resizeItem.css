@@ -1,0 +1,15 @@
+.dragItem {
+  border: 1px solid;
+  border-radius: 8px;
+  height: 100%;
+  box-sizing: border-box;
+  color: white;
+  text-align: center;
+}
+.react-draggable-dragging .dragItem {
+  opacity: 0.6;
+}
+
+.dragItemWarp.react-draggable-dragging {
+  z-index: 3;
+}
