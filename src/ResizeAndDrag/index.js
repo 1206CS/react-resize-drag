@@ -1,4 +1,9 @@
-import { createGridColumns, createGridRows, mockInitDragItems } from "./utils";
+import {
+  createGridColumns,
+  createGridRows,
+  getNewItemInfo,
+  mockInitDragItems,
+} from "./utils";
 import styles from "./index.module.scss";
 import {
   DRAG_GRID_X,
@@ -8,10 +13,10 @@ import {
 } from "./constans";
 import ResizeAndDragList from "./ResizeAndDragList";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { setItemList } from "../store/resizeAndDrag";
+import { useDispatch, useSelector } from "react-redux";
+import { addNewItem, selectors, setItemList } from "../store/resizeAndDrag";
 
-const rowNum = 8;
+const rowNum =5;
 const colNum = 10;
 const rows = createGridRows(rowNum);
 const columns = createGridColumns(colNum);
@@ -21,11 +26,17 @@ const wrapHeight = rowNum * DRAG_GRID_Y - ITEM_SPACING_Y;
 
 function ResizeAndDrag() {
   const dispatch = useDispatch();
-  
+  const dragList = useSelector(selectors.getItemList);
+
   useEffect(() => {
     const itemList = mockInitDragItems();
     dispatch(setItemList(itemList));
   }, [dispatch]);
+
+  function addDragItem(x, y) {
+    const newItem = getNewItemInfo(dragList, x, y);
+    dispatch(addNewItem(newItem));
+  }
 
   return (
     <div
@@ -35,8 +46,12 @@ function ResizeAndDrag() {
       {rows.map((row) => (
         <div key={row.y} style={{ marginBottom: ITEM_SPACING_Y }}>
           {columns.map((col) => (
-            <button key={col.x} className={styles.gridButton}>
-              H
+            <button
+              key={col.x}
+              className={styles.gridButton}
+              onClick={() => addDragItem(col.x, row.y)}
+            >
+             H
             </button>
           ))}
         </div>

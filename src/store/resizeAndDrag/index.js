@@ -24,16 +24,22 @@ const resizeAndDragSlice = createSlice({
         width: payload.width,
       });
     },
-    // updateItemPosition(state, { payload }) {
-    //   const itemIndex = state.itemList.findIndex(
-    //     (item) => item.id === state.currentItem.id
-    //   );
+    addNewItem(state, { payload }) {
+      const index = state.itemList.findIndex((item) => item.id === payload.id);
+      if (index < 0) {
+        state.itemList.push(payload);
+      } else {
+        state.itemList[index] = Object.assign({}, payload);
+      }
+    },
+    updateSwapedItem(state, { payload }) {
+      const index = state.itemList.findIndex((item) => item.id === payload.id);
 
-    //   state.itemList[itemIndex] = Object.assign(state.itemList[itemIndex], {
-    //     x: state.currentItem.x,
-    //     y: state.currentItem.y,
-    //     width: state.currentItem.width,
-    //   });
+      state.itemList[index] = Object.assign(state.itemList[index], {
+        x: payload.x,
+        y: payload.y,
+      });
+    },
   },
 });
 
@@ -47,6 +53,11 @@ const selectors = {
 
 const { reducer } = resizeAndDragSlice;
 export { selectors };
-export const { setItemList, updateItemPosition, setCurrentItem } =
-  resizeAndDragSlice.actions;
+export const {
+  setItemList,
+  updateItemPosition,
+  setCurrentItem,
+  addNewItem,
+  updateSwapedItem,
+} = resizeAndDragSlice.actions;
 export default reducer;

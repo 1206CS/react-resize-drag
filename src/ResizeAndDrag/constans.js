@@ -10,4 +10,5 @@ export const RESIZR_GRID_MIDDLE = DRAG_GRID_X / 2;
 export const ITEM_TYPE = {
   NORMAL: 1,
   DISABLED: 2,
+  NEW: 3,
 };

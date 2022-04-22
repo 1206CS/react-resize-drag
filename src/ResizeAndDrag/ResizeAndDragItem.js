@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Rnd } from "react-rnd";
 import {
   DRAG_GRID_X,
@@ -9,14 +9,37 @@ import {
   ITEM_WIDTH,
 } from "./constans";
 import "./resizeItem.css";
-import { updateItemPosition } from "../store/resizeAndDrag";
+import {
+  selectors,
+  updateItemPosition,
+  updateSwapedItem,
+} from "../store/resizeAndDrag";
 
-import { calItemXAndWidthAfterResize } from "./utils";
+import {
+  calItemXAndWidthAfterResize,
+  getCanResize,
+  getDragStopItemInfo,
+} from "./utils";
 
 let resizingItem = {};
+let draggingItem = {};
+const itemColorMap = {
+  bgColor: {
+    [ITEM_TYPE.NORMAL]: "#f27d29",
+    [ITEM_TYPE.DISABLED]: "lightgray",
+    [ITEM_TYPE.NEW]: "#02ab02",
+  },
+
+  borderColor: {
+    [ITEM_TYPE.NORMAL]: "#e53e3e",
+    [ITEM_TYPE.DISABLED]: "#bdbdbd",
+    [ITEM_TYPE.NEW]: "#089508",
+  },
+};
 function ResizeAndDragItem({ details }) {
   const isDisabledItem = details.type === ITEM_TYPE.DISABLED;
   const dispatch = useDispatch();
+  const itemList = useSelector(selectors.getItemList);
 
   const rndRef = useRef(null);
   const [itemX, setItemX] = useState(details.x);
@@ -28,12 +51,14 @@ function ResizeAndDragItem({ details }) {
     if (isResizing || (newPosition.x === itemX && newPosition.y === itemY)) {
       return;
     }
-    const { canSwap, canDrag } = {
-      canSwap: true,
-      canDrag: true,
-    }; // TODO  need a function
+    const { canSwap, canDragInSameRow, newPositionItems } = getDragStopItemInfo(
+      itemList,
+      newPosition,
+      itemWidth,
+      { x: itemX, y: itemY }
+    );
 
-    if (canSwap || canDrag) {
+    if (canSwap || canDragInSameRow) {
       setItemX(newPosition.x);
       setItemY(newPosition.y);
       dispatch(
@@ -44,6 +69,16 @@ function ResizeAndDragItem({ details }) {
           width: itemWidth,
         })
       );
+
+      if (canSwap) {
+        dispatch(
+          updateSwapedItem({
+            x: draggingItem.x,
+            y: draggingItem.y,
+            id: newPositionItems[0].id,
+          })
+        );
+      }
     }
   };
 
@@ -60,7 +95,12 @@ function ResizeAndDragItem({ details }) {
     }
 
     const itemNewX = direction === "left" ? newX : itemX;
-    const canResize = true; //TODO need a function
+    const canResize = getCanResize(
+      itemList,
+      { x: itemX, y: itemY },
+      itemNewX,
+      newWidth
+    );
 
     if (canResize) {
       if (direction === "left") {
@@ -81,6 +121,12 @@ function ResizeAndDragItem({ details }) {
       rndRef?.current.updatePosition({ x: itemX, y: itemY });
     }
   };
+
+  useEffect(() => {
+    setItemWidth(details.width);
+    setItemX(details.x);
+    setItemY(details.y);
+  }, [details.width, details.x, details.y]);
 
   return (
     <Rnd
@@ -106,6 +152,9 @@ function ResizeAndDragItem({ details }) {
         handleResizeStop(resizingItem.x, direction, delta);
         setIsResizing(false);
       }}
+      onDragStart={() => {
+        draggingItem = { x: details.x, y: details.y };
+      }}
       onDragStop={(e, d) => {
         handleDragStop({ x: d.lastX, y: d.lastY });
       }}
@@ -113,8 +162,8 @@ function ResizeAndDragItem({ details }) {
       <div
         className="dragItem"
         style={{
-          backgroundColor: isDisabledItem ? "lightgray" : "#f27d29",
-          borderColor: isDisabledItem ? "#bdbdbd" : "#e53e3e",
+          backgroundColor: itemColorMap.bgColor[details.type],
+          borderColor: itemColorMap.borderColor[details.type],
         }}
       >
         Hello
